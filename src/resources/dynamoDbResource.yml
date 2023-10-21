@@ -1,0 +1,12 @@
+Resources:
+  usersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.DYNAMODB_USER_TABLE_NAME}
+      AttributeDefinitions:
+        - AttributeName: Email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Email
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
