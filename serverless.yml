@@ -1,0 +1,62 @@
+service: ${file(./package.json):name}
+
+frameworkVersion: '3'
+
+custom:
+  DYNAMODB_USER_TABLE_NAME: 'Users-${self:provider.stage}'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: eu-central-1
+  stage: dev
+  iam:
+    role:
+      name: my-app-function-role
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:DescribeTable
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - { "Fn::GetAtt": ["usersTable", "Arn" ] }
+
+  environment:
+    REGION: ${self:provider.region}
+    USER_TABLE_NAME: ${self:custom.DYNAMODB_USER_TABLE_NAME}
+    JWT_SECRET: 'ue9zRRX0ZrDKiNAHYrph6LW3Q6Wvy35qD9CnOMvX7QHwiFOxRbbKGXUhGCzocBEF'
+
+package:
+  individually: true
+  patterns:
+    - '!build.mjs'
+    - '!src/**'
+
+functions:
+  healthCheck:
+    handler: dist/handlers/health-check.healthCheck
+    events:
+      - http:
+          path: /health-check
+          method: get
+  signUp:
+    handler: dist/handlers/sign-up.signUp
+    events:
+      - http:
+          path: /sign-up
+          method: post
+  signIn:
+    handler: dist/handlers/sign-in.signIn
+    event:
+      - http:
+          path: /sign-in
+          method: post
+
+
+resources:
+  - ${file(./src/resources/dynamoDbResource.yml)}
