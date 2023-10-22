@@ -4,6 +4,13 @@ frameworkVersion: '3'
 
 custom:
   DYNAMODB_USER_TABLE_NAME: 'Users-${self:provider.stage}'
+  # configuring authorizer in provider.httpApi doesn't work and there are still open issue
+  # should be added after serverless team fix this issue
+  authorizer:
+    type: request
+    name: verifyToken
+    resultTtlInSeconds: 0
+    identitySource: method.request.header.Authorization
 
 provider:
   name: aws
@@ -29,7 +36,6 @@ provider:
   environment:
     REGION: ${self:provider.region}
     USER_TABLE_NAME: ${self:custom.DYNAMODB_USER_TABLE_NAME}
-    JWT_SECRET: 'ue9zRRX0ZrDKiNAHYrph6LW3Q6Wvy35qD9CnOMvX7QHwiFOxRbbKGXUhGCzocBEF'
 
 package:
   individually: true
@@ -38,25 +44,36 @@ package:
     - '!src/**'
 
 functions:
+  # authorizer
+  verifyToken:
+    handler: dist/functions/auth/verify-token.verifyToken
+
   healthCheck:
-    handler: dist/handlers/health-check.healthCheck
+    handler: dist/functions/health-check.healthCheck
     events:
       - http:
           path: /health-check
           method: get
+          authorizer: ${self:custom.authorizer}
+  #Unprotected routes
   signUp:
-    handler: dist/handlers/sign-up.signUp
+    handler: dist/functions/auth/sign-up.signUp
     events:
       - http:
           path: /sign-up
           method: post
   signIn:
-    handler: dist/handlers/sign-in.signIn
-    event:
+    handler: dist/functions/auth/sign-in.signIn
+    events:
       - http:
           path: /sign-in
           method: post
-
+  refresh:
+    handler: dist/functions/auth/refresh.refresh
+    events:
+      - http:
+          path: /refresh
+          method: post
 
 resources:
   - ${file(./src/resources/dynamoDbResource.yml)}
