@@ -1,12 +1,13 @@
 import { Handler } from "aws-lambda";
-import { DocumentClient } from 'aws-sdk/clients/dynamodb';
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import * as bcrypt from "bcryptjs";
-
 import { signTokenPair } from '../../utils/auth';
 import { UserCredentials, TokenPayload } from '../../types/auth.types';
 import { Status } from '../../enums';
 
-const ddb = new DocumentClient();
+const client = new DynamoDBClient({});
+const ddb = DynamoDBDocumentClient.from(client);
 
 export const signIn: Handler = async (event) => {
   let statusCode = 500;
@@ -21,7 +22,7 @@ export const signIn: Handler = async (event) => {
     }
     console.log('PARAMS', params)
 
-    const { Item } = await ddb.get(params).promise();
+    const { Item } = await ddb.send(new GetCommand(params));
     if (!Item) {
       statusCode = 401;
       throw new Error('Something wrong with email or password.')

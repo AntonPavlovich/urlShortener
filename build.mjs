@@ -6,5 +6,5 @@ await esbuild.build({
   platform: 'node',
   target: ['node18'],
   outdir: './dist',
-  external: ['aws-sdk/clients/*', 'bcryptjs', 'jsonwebtoken']
+  external: ['@aws-sdk/*', 'bcryptjs', 'jsonwebtoken']
 })

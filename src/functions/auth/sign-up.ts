@@ -1,12 +1,14 @@
 import { Handler } from "aws-lambda";
-import { DocumentClient } from "aws-sdk/clients/dynamodb"
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import * as bcrypt from "bcryptjs";
 import { TokenPayload, UserCredentials } from '../../types/auth.types';
 import { Status } from '../../enums';
 import { randomUUID } from 'crypto';
 import { signTokenPair } from '../../utils/auth';
 
-const ddb = new DocumentClient();
+const client = new DynamoDBClient({});
+const ddb = DynamoDBDocumentClient.from(client);
 
 export const signUp: Handler = async (event) => {
   let statusCode = 500;
@@ -31,7 +33,8 @@ export const signUp: Handler = async (event) => {
       ConditionExpression: "attribute_not_exists(Email)",
     };
 
-    await ddb.put(params).promise();
+    const response = await ddb.send(new PutCommand(params));
+    console.log('RESPONSE!', response)
 
     const payload: TokenPayload = { id: params.Item.Id, email: params.Item.Email };
     const tokenPair = signTokenPair(payload);
