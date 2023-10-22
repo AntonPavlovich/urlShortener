@@ -2,7 +2,6 @@
   "name": "urlshortener",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "devDependencies": {
     "@types/aws-lambda": "^8.10.125",
     "@types/node": "^20.8.7",
@@ -16,6 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.1477.0",
-    "bcryptjs": "^2.4.3"
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
   }
 }
