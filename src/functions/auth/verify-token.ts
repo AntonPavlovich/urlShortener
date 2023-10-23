@@ -6,12 +6,12 @@ export const verifyToken: Handler = async (event) => {
 
   try {
     const payload = verifyAccess(token?.split(' ')[1]);
-    const { id } = payload;
+    const { id, email } = payload;
     return constructPolicy({
       principalId: id,
       methodArn,
       effect: 'Allow',
-      context: { token }
+      context: { id, email }
     });
   } catch (ex) {
     return constructPolicy({
