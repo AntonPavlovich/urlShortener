@@ -16,11 +16,12 @@ export const deactivateLink: Handler = async event => {
       TableName: process.env.LINKS_TABLE_NAME,
       Key: {
         ShortId: linkId,
-        UserEmail: email
       },
+      ConditionExpression: 'UserEmail = :email',
       UpdateExpression: 'SET IsActive = :active',
       ExpressionAttributeValues: {
-        ":active": false
+        ":active": false,
+        ":email": email
       },
     }
 
@@ -28,12 +29,18 @@ export const deactivateLink: Handler = async event => {
     return {
       statusCode: 200,
       body: JSON.stringify({
+        status: Status.SUCCESS,
         linkId,
-        active: false
       })
     }
   } catch (ex) {
     console.error(ex);
+    if (ex.code === 'ConditionalCheckFailedException') {
+      return {
+        statusCode: 403,
+        body: JSON.stringify({ message: 'Forbidden' })
+      }
+    }
     return {
       body: JSON.stringify(ex)
     }
