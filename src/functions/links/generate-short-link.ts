@@ -30,6 +30,7 @@ export const generateShortLink: Handler = async event => {
         IsOneTime: expirationTime === ExpireAfter.ONE_TIME,
         IsActive: true
       },
+      ConditionExpression: "attribute_not_exists(ShortId)",
     }
 
     await ddb.send(new PutCommand(params));
