@@ -5,7 +5,6 @@ jspm_packages
 # Serverless directories
 .serverless
 
-package-*.json
 dist
 
 .DS_Store
