@@ -2,11 +2,25 @@ Resources:
   usersTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: ${self:custom.DYNAMODB_USER_TABLE_NAME}
+      TableName: ${self:custom.dynamoDbUsersTableName}
       AttributeDefinitions:
         - AttributeName: Email
           AttributeType: S
       KeySchema:
         - AttributeName: Email
           KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  linksTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.dynamoDbLinksTableName}
+      AttributeDefinitions:
+        - AttributeName: ShortId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: ShortId
+          KeyType: HASH
+        - AttributeName: UserEmail
+          KeyType: RANGE
       BillingMode: PAY_PER_REQUEST
