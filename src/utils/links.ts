@@ -10,3 +10,8 @@ export const convertExpirationDateToUnix = (expireAfter: ExpireAfter): number =>
   return getUnixTime(addDays(Date.now(), parseInt(days, 10)));
 }
 
+export const testUrl = (url: string): boolean => {
+  const urlPattern = /^(https?:\/\/)?([A-Za-z0-9.-]+\.[A-Za-z]{2,})(:\d+)?(\/[A-Za-z0-9_.-]+)*\/?(\?[A-Za-z0-9_=&-]+)?(#.*)?$/;
+  return urlPattern.test(url)
+}
+
