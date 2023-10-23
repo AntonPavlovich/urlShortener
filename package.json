@@ -8,7 +8,7 @@
     "esbuild": "^0.19.5"
   },
   "scripts": {
-    "build": "node ./build.mjs"
+    "build": "node build.mjs"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +17,8 @@
     "@aws-sdk/client-dynamodb": "^3.433.0",
     "@aws-sdk/lib-dynamodb": "^3.433.0",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2"
+    "date-fns": "^2.30.0",
+    "jsonwebtoken": "^9.0.2",
+    "nanoid": "^3.3.6"
   }
 }
