@@ -22,7 +22,6 @@ export const deactivateLink: Handler = async event => {
       ExpressionAttributeValues: {
         ":active": false
       },
-      ConditionExpression: 'attribute_not_exists(ShortId)'
     }
 
     await ddb.send(new UpdateCommand(params));

@@ -43,6 +43,12 @@ export const generateShortLink: Handler = async event => {
     }
   } catch (ex) {
     console.error(ex);
+    if(ex.code === "ConditionalCheckFailedException") {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Link with such id already exists. Please generate again.' })
+      }
+    }
     return {
       statusCode: 500,
       body: JSON.stringify({

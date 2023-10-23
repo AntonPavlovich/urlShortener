@@ -18,6 +18,8 @@ Resources:
       AttributeDefinitions:
         - AttributeName: ShortId
           AttributeType: S
+        - AttributeName: UserEmail
+          AttributeType: S
       KeySchema:
         - AttributeName: ShortId
           KeyType: HASH
