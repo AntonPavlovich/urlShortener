@@ -1,0 +1,5 @@
+Resources:
+  deactivatedLinks:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: ${self:custom.deactivatedLinksQueueName}
