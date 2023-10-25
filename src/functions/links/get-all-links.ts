@@ -1,11 +1,10 @@
 import { Handler } from 'aws-lambda';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, ScanCommand, ScanCommandInput } from '@aws-sdk/lib-dynamodb';
+import { ScanCommand, ScanCommandInput } from '@aws-sdk/lib-dynamodb';
 import { BodyShape, ResponseShape } from '../../types/common.types';
 import { Status } from '../../enums';
+import { getDynamoDbClient } from '../../utils/shared';
 
-const client = new DynamoDBClient({});
-const ddb = DynamoDBDocumentClient.from(client);
+const ddb = getDynamoDbClient();
 
 export const getAllLinks: Handler = async event => {
   try {
@@ -19,7 +18,7 @@ export const getAllLinks: Handler = async event => {
       }
     }
 
-    const { Items } = await ddb.send(new ScanCommand(params));
+    const { Items = [] } = await ddb.send(new ScanCommand(params));
     const body: BodyShape = {
       status: Status.SUCCESS,
       data: { items: [...Items] }

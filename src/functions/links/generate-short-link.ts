@@ -1,14 +1,11 @@
 import { Handler } from 'aws-lambda';
 import { nanoid } from 'nanoid';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, PutCommandInput } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, PutCommandInput } from "@aws-sdk/lib-dynamodb";
 import { convertExpirationDateToUnix, testUrl } from '../../utils/links';
 import { ExpireAfter, Status } from '../../enums';
+import { getDynamoDbClient } from '../../utils/shared';
 
-const client = new DynamoDBClient({});
-const ddb = DynamoDBDocumentClient.from(client);
-
-// ID (short link) originLink expirationTime userEmail
+const ddb = getDynamoDbClient();
 
 export const generateShortLink: Handler = async event => {
   let statusCode: number;
