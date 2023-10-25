@@ -18,10 +18,10 @@ export const redirect: Handler = async event => {
       TableName: process.env.LINKS_TABLE_NAME,
       Key: {
         ShortId: shortId
-      }
+      },
     }
     const { Item } = await ddb.send(new GetCommand(params));
-    if (!Item) {
+    if (!Item || !Item.IsActive) {
       return {
         statusCode: 400,
         body: JSON.stringify({ message: 'Not found' })
