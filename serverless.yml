@@ -3,7 +3,9 @@ service: ${file(./package.json):name}
 frameworkVersion: '3'
 
 custom:
-  DYNAMODB_USER_TABLE_NAME: 'Users-${self:provider.stage}'
+  dynamoDbUsersTableName: 'Users-${self:provider.stage}'
+  dynamoDbLinksTableName: 'Links-${self:provider.stage}'
+  deactivatedLinksQueueName: 'Deactivated-Links-${self:provider.stage}'
   # configuring authorizer in provider.httpApi doesn't work and there are still open issue
   # should be added after serverless team fix this issue
   authorizer:
@@ -12,11 +14,28 @@ custom:
     resultTtlInSeconds: 0
     identitySource: method.request.header.Authorization
 
+plugins:
+  - serverless-dotenv-plugin
+
 provider:
   name: aws
   runtime: nodejs18.x
   region: eu-central-1
   stage: dev
+  httpApi:
+    cors:
+      allowedOrigins: '*'
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+      allowedMethods:
+        - GET
+        - POST
+        - PATCH
+      allowCredentials: true
+      exposedResponseHeaders:
+        - Special-Response-Header
+      maxAge: 6000
   iam:
     role:
       name: my-app-function-role
@@ -31,16 +50,32 @@ provider:
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
           Resource:
-            - { "Fn::GetAtt": ["usersTable", "Arn" ] }
+            - { "Fn::GetAtt": [ "usersTable", "Arn" ] }
+            - { "Fn::GetAtt": [ "linksTable", "Arn" ] }
+        - Effect: Allow
+          Action:
+            - sqs:ReceiveMessage
+            - sqs:SendMessage
+            - sqs:GetQueueUrl
+            - sqs:GetQueueAttributes
+          Resource:
+            - { "Fn::GetAtt": [ "deactivatedLinks", "Arn" ] }
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+            - ses:VerifyEmailIdentity
+          Resource: "*"
 
   environment:
     REGION: ${self:provider.region}
-    USER_TABLE_NAME: ${self:custom.DYNAMODB_USER_TABLE_NAME}
+    USER_TABLE_NAME: ${self:custom.dynamoDbUsersTableName}
+    LINKS_TABLE_NAME: ${self:custom.dynamoDbLinksTableName}
+    DEACTIVATED_LINKS_QUEUE_NAME: ${self:custom.deactivatedLinksQueueName}
 
 package:
   individually: true
   patterns:
-    - '!build.mjs'
+    - '!script.mjs'
     - '!src/**'
 
 functions:
@@ -53,27 +88,75 @@ functions:
     events:
       - http:
           path: /health-check
-          method: get
+          method: GET
           authorizer: ${self:custom.authorizer}
-  #Unprotected routes
+  # auth
   signUp:
     handler: dist/functions/auth/sign-up.signUp
     events:
       - http:
           path: /sign-up
-          method: post
+          method: POST
   signIn:
     handler: dist/functions/auth/sign-in.signIn
     events:
       - http:
           path: /sign-in
-          method: post
+          method: POST
   refresh:
     handler: dist/functions/auth/refresh.refresh
     events:
       - http:
           path: /refresh
-          method: post
+          method: POST
+  #links management
+  generateShortLink:
+    handler: dist/functions/links/generate-short-link.generateShortLink
+    events:
+      - http:
+          path: /l/generate
+          method: POST
+          authorizer: ${self:custom.authorizer}
+          cors: true
+  deactivateLink:
+    handler: dist/functions/links/deactivate-link.deactivateLink
+    events:
+      - http:
+          path: /l/deactivate
+          method: PATCH
+          authorizer: ${self:custom.authorizer}
+          cors: true
+  getAllLinks:
+    handler: dist/functions/links/get-all-links.getAllLinks
+    events:
+      - http:
+          path: /l/get-all-links
+          method: GET
+          authorizer: ${self:custom.authorizer}
+          cors: true
+  deactivateLinkByCron:
+    handler: dist/functions/links/deactivate-link-by-cron.deactivateLinkByCron
+    events:
+      - eventBridge:
+          schedule: rate(1 day)
+  redirect:
+    handler: dist/functions/links/redirect.redirect
+    events:
+      - http:
+          path: /l/{shortId}
+          method: GET
+  sendLinkDeactivatedEmail:
+    handler: dist/functions/links/send-link-deactivated-email.sendLinkDeactivatedEmail
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - deactivatedLinks
+              - Arn
+          batchSize: 10
+          maximumBatchingWindow: 60
+          functionResponseType: ReportBatchItemFailures
 
 resources:
-  - ${file(./src/resources/dynamoDbResource.yml)}
+  - ${file(./src/resources/dynamoDd.yml)}
+  - ${file(./src/resources/sqs.yml)}
