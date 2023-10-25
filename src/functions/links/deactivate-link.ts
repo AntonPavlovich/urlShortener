@@ -1,18 +1,20 @@
 import { Handler } from 'aws-lambda';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, UpdateCommand, UpdateCommandInput } from "@aws-sdk/lib-dynamodb";
+import { UpdateCommand, UpdateCommandInput } from "@aws-sdk/lib-dynamodb";
 import { Status } from '../../enums';
+import { getDynamoDbClient, getSqsClient } from '../../utils/shared';
+import { GetQueueUrlCommand, SendMessageCommand, SendMessageCommandInput } from '@aws-sdk/client-sqs';
 
-const client = new DynamoDBClient({});
-const ddb = DynamoDBDocumentClient.from(client)
+const ddb = getDynamoDbClient();
+const sqs = getSqsClient();
 
 export const deactivateLink: Handler = async event => {
   try {
-    console.log(event);
     const { linkId } = JSON.parse(event.body);
     const { id, email } = event?.requestContext?.authorizer;
 
-    const params: UpdateCommandInput = {
+    const { QueueUrl } = await sqs.send(new GetQueueUrlCommand({ QueueName: process.env.DEACTIVATED_LINKS_QUEUE_NAME }));
+
+    const updateCommandParams: UpdateCommandInput = {
       TableName: process.env.LINKS_TABLE_NAME,
       Key: {
         ShortId: linkId,
@@ -25,7 +27,17 @@ export const deactivateLink: Handler = async event => {
       },
     }
 
-    await ddb.send(new UpdateCommand(params));
+    await ddb.send(new UpdateCommand(updateCommandParams));
+
+    const sendMessageCommandParams: SendMessageCommandInput = {
+      QueueUrl,
+      MessageBody: JSON.stringify({
+        ShortId: updateCommandParams.Key.ShortId,
+        UserEmail: email,
+      })
+    };
+
+    await sqs.send(new SendMessageCommand(sendMessageCommandParams));
     return {
       statusCode: 200,
       body: JSON.stringify({
