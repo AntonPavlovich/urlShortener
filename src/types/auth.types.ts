@@ -1,17 +1,7 @@
-import { Status } from '../enums';
 
 export type UserCredentials = {
   email: string;
   password: string;
-};
-
-export type AuthResponse = {
-  statusCode: number;
-  body: {
-    status: Status;
-    error?: string;
-    data: any;
-  };
 };
 
 export type TokenPayload = {
