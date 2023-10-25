@@ -1,14 +1,15 @@
 import { Handler } from "aws-lambda";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, PutCommandInput } from "@aws-sdk/lib-dynamodb";
 import * as bcrypt from "bcryptjs";
 import { TokenPayload, UserCredentials } from '../../types/auth.types';
 import { Status } from '../../enums';
 import { randomUUID } from 'crypto';
 import { signTokenPair } from '../../utils/auth';
+import { getDynamoDbClient, getSesClient } from '../../utils/shared';
+import { VerifyEmailAddressCommandInput, VerifyEmailIdentityCommand } from '@aws-sdk/client-ses';
 
-const client = new DynamoDBClient({});
-const ddb = DynamoDBDocumentClient.from(client);
+const ddb = getDynamoDbClient();
+const ses = getSesClient();
 
 export const signUp: Handler = async (event) => {
   let statusCode = 500;
@@ -23,7 +24,7 @@ export const signUp: Handler = async (event) => {
 
     const hashedPassword = bcrypt.hashSync(password, 10);
 
-    const params = {
+    const putCommandParams: PutCommandInput = {
       TableName: `${process?.env?.USER_TABLE_NAME}`,
       Item: {
         Id: randomUUID(),
@@ -33,10 +34,14 @@ export const signUp: Handler = async (event) => {
       ConditionExpression: "attribute_not_exists(Email)",
     };
 
-    const response = await ddb.send(new PutCommand(params));
-    console.log('RESPONSE!', response)
+    const response = await ddb.send(new PutCommand(putCommandParams));
 
-    const payload: TokenPayload = { id: params.Item.Id, email: params.Item.Email };
+    const verifyEmailCommandParams: VerifyEmailAddressCommandInput = {
+      EmailAddress: email
+    }
+    await ses.send(new VerifyEmailIdentityCommand(verifyEmailCommandParams));
+
+    const payload: TokenPayload = { id: putCommandParams.Item.Id, email: putCommandParams.Item.Email };
     const tokenPair = signTokenPair(payload);
 
     return {
