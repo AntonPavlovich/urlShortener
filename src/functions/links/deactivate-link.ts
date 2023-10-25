@@ -50,11 +50,18 @@ export const deactivateLink: Handler = async event => {
     if (ex.code === 'ConditionalCheckFailedException') {
       return {
         statusCode: 403,
-        body: JSON.stringify({ message: 'Forbidden' })
+        body: JSON.stringify({
+          status: Status.ERROR,
+          message: 'Forbidden'
+        })
       }
     }
     return {
-      body: JSON.stringify(ex)
+      statusCode: 500,
+      body: JSON.stringify({
+        status: Status.ERROR,
+        message: 'Internal Server Error'
+      })
     }
   }
 }

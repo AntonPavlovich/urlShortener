@@ -11,7 +11,6 @@ export const convertExpirationDateToUnix = (expireAfter: ExpireAfter): number =>
 }
 
 export const testUrl = (url: string): boolean => {
-  const urlPattern = /^(https?:\/\/)?([A-Za-z0-9.-]+\.[A-Za-z]{2,})(:\d+)?(\/[A-Za-z0-9_.-]+)*\/?(\?[A-Za-z0-9_=&-]+)?(#.*)?$/;
-  return urlPattern.test(url)
+  return /^(https?:\/\/)?([A-Za-z0-9.-]+\.[A-Za-z]{2,})(:\d+)?(\/[A-Za-z0-9_.-]+)*\/?(\?[A-Za-z0-9_=&-]+)?(#.*)?$/.test(url);
 }
 

@@ -9,7 +9,6 @@ const ddb = getDynamoDbClient();
 
 export const generateShortLink: Handler = async event => {
   let statusCode: number;
-  console.log(event);
   try {
     const { url, expirationTime } = JSON.parse(event.body);
     const { id, email } = event.requestContext.authorizer;
