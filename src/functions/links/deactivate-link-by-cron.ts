@@ -46,7 +46,7 @@ export const deactivateLinkByCron: Handler = async (event, context, callback) =>
 
       const sendMessageCommandParams: SendMessageCommandInput = {
         QueueUrl,
-        MessageBody: JSON.stringify({ ShortId: link.ShortId, Email: link.Email }),
+        MessageBody: JSON.stringify({ ShortId: link.ShortId, Email: link.UserEmail }),
       };
       await sqs.send(new SendMessageCommand(sendMessageCommandParams))
     }
