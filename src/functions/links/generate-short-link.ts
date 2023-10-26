@@ -29,7 +29,8 @@ export const generateShortLink: Handler = async event => {
         ExpirationTime: expirationTimeInUnix,
         UserEmail: email,
         IsOneTime: expirationTime === ExpireAfter.ONE_TIME,
-        IsActive: true
+        IsActive: true,
+        Clicks: 0
       },
       ConditionExpression: "attribute_not_exists(ShortId)",
     }
@@ -40,7 +41,9 @@ export const generateShortLink: Handler = async event => {
       statusCode,
       body: JSON.stringify({
         status: Status.SUCCESS,
-        data: params.Item
+        ShortId: params.Item.ShortId,
+        Clicks: params.Item.Clicks,
+        OriginUrl: params.Item.OriginUrl
       })
     }
   } catch (ex) {
@@ -48,12 +51,13 @@ export const generateShortLink: Handler = async event => {
     if(ex.code === "ConditionalCheckFailedException") {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'Link with such id already exists. Please generate again.' })
+        body: JSON.stringify({ status: Status.ERROR, error: 'Link with such id already exists. Please generate again.' })
       }
     }
     return {
       statusCode: statusCode ?? 500,
       body: JSON.stringify({
+        status: Status.ERROR,
         error: ex?.message ?? 'Internal Server Error'
       })
     }

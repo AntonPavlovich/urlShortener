@@ -15,7 +15,8 @@ export const getAllLinks: Handler = async event => {
       ExpressionAttributeValues: {
         ":email": email,
         ":isActive": true
-      }
+      },
+      ProjectionExpression: 'ShortId, OriginUrl, Clicks, IsOneTime',
     }
 
     const { Items = [] } = await ddb.send(new ScanCommand(params));

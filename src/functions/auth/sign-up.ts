@@ -48,7 +48,7 @@ export const signUp: Handler = async (event) => {
       statusCode: 201,
       body: JSON.stringify({
         status: Status.SUCCESS,
-        data: tokenPair
+        tokenPair
       })
     };
   } catch (ex) {
@@ -66,7 +66,7 @@ export const signUp: Handler = async (event) => {
     } else {
       body.error = ex?.message ?? "Error while SignUp processing.";
       return {
-        statusCode,
+        statusCode: 500,
         body: JSON.stringify(body),
       };
     }

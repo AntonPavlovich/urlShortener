@@ -24,7 +24,7 @@ export const signIn: Handler = async (event) => {
 
     const { Item } = await ddb.send(new GetCommand(params));
     if (!Item) {
-      statusCode = 401;
+      statusCode = 400;
       throw new Error('Something wrong with email or password.')
     }
 
@@ -32,12 +32,12 @@ export const signIn: Handler = async (event) => {
     const match = await bcrypt.compare(password, hashed);
 
     if (!match) {
-      statusCode = 401;
+      statusCode = 400;
       throw new Error('Something wrong with email or password.')
     }
     const payload: TokenPayload = { id: Id, email: Email }
     const tokenPair = signTokenPair(payload);
-    const body = { status: Status.SUCCESS, data: tokenPair}
+    const body = { status: Status.SUCCESS, tokenPair}
     return {
       statusCode: 200,
       body: JSON.stringify(body)
