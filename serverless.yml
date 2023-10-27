@@ -6,6 +6,12 @@ custom:
   dynamoDbUsersTableName: 'Users-${self:provider.stage}'
   dynamoDbLinksTableName: 'Links-${self:provider.stage}'
   deactivatedLinksQueueName: 'Deactivated-Links-${self:provider.stage}'
+  globalTables:
+    version: v2
+    regions:
+      - eu-central-1
+      - eu-west-1
+    createStack: false
   # configuring authorizer in provider.httpApi doesn't work and there are still open issue
   # should be added after serverless team fix this issue
   authorizer:
@@ -16,6 +22,7 @@ custom:
 
 plugins:
   - serverless-dotenv-plugin
+  - serverless-create-global-dynamodb-table
 
 provider:
   name: aws
@@ -77,19 +84,12 @@ package:
   patterns:
     - '!script.mjs'
     - '!src/**'
+    - '!Readme.md'
 
 functions:
   # authorizer
   verifyToken:
     handler: dist/functions/auth/verify-token.verifyToken
-
-  healthCheck:
-    handler: dist/functions/health-check.healthCheck
-    events:
-      - http:
-          path: /health-check
-          method: GET
-          authorizer: ${self:custom.authorizer}
   # auth
   signUp:
     handler: dist/functions/auth/sign-up.signUp
