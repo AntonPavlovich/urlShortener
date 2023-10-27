@@ -22,6 +22,15 @@ This email will be used as "from" for emails notification.
 npm run init
 ```
 
+### Install dependencies
+```bash
+npm install
+```
+Or
+```bash
+npm ci
+```
+
 ### Building project
 
 Run command
@@ -31,7 +40,7 @@ npm run build
 
 ### Deploy project
 
-Run command. (This command also build project first)
+Run command. (This command also builds project first)
 ```bash
 npm run deploy
 ```
