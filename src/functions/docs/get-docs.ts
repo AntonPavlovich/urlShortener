@@ -1,5 +1,5 @@
 import { Handler } from 'aws-lambda';
-import { readFileSync, readdir } from 'fs';
+import { readFileSync } from 'fs';
 import * as path from 'path';
 
 
