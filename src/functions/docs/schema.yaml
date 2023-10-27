@@ -1,0 +1,297 @@
+openapi: 3.0.0
+info:
+  version: "1.0.0"
+  title: url-shortener-api
+  description: The API for URL shortener
+paths:
+  /sign-up:
+    post:
+      summary: method for creating user
+      tags:
+        - Auth
+      description: creates and sign in user using email and password
+      operationId: signUp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  uniqueItems: true
+                password:
+                  type: string
+      responses:
+        '200':
+          description: status and two tokens (access and refresh)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPairResponse'
+        '400':
+          description: bad request (wrong user password or email already exists)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /sign-in:
+    post:
+      summary: method for login user
+      tags:
+        - Auth
+      description: login user in the application
+      operationId: signIn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCredentials'
+      responses:
+        '200':
+          description: status and two tokens (access and refresh)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPairResponse'
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /refresh:
+    post:
+      summary: refreshes access token using refresh token
+      tags:
+        - Auth
+      description: refreshes access token
+      operationId: refresh
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshToken'
+      responses:
+        '200':
+          description: status and two tokens (access and refresh)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPairResponse'
+  /l/generate:
+    post:
+      summary: generate short link
+      security:
+        - LambdaAuth: []
+      tags:
+        - Links
+      description: generate short link for long one provided
+      operationId: generateShortLink
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OriginLinkWithExpTime'
+      responses:
+        '200':
+          description: generated short link
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShortLinkResponse'
+        '400':
+          description: bad request (wrong URL)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /l/deactivate:
+    patch:
+      summary: deactivate short link
+      security:
+        - LambdaAuth: []
+      tags:
+        - Links
+      description: mark short link as deactivated
+      operationId: deactivateLink
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeactivateLink'
+      responses:
+        '200':
+          description: status and linkId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeactivateLinkResponse'
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /l/get-all-links:
+    get:
+      summary: returns all links for requested user
+      security:
+        - LambdaAuth: []
+      tags:
+        - Links
+      operationId: getAllLinks
+      responses:
+        '200':
+          description: array of Links
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Links'
+  /l/{shortId}:
+    get:
+      summary: redirect to original url
+      tags:
+        - Links
+      parameters:
+        - in: path
+          description: short id for link
+          name: shortId
+          required: true
+          schema:
+            type: string
+      operationId: redirect
+      responses:
+        "308":
+          description: permanent redirect
+          headers:
+            Location:
+              description: Original url that have beed shortened
+              schema:
+                type: string
+                format: uri
+        "404":
+          description: not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    default: 'Not found'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        status:
+          type: string
+          default: Error
+        error:
+          type: string
+    Links:
+      type: array
+      items:
+        $ref: '#/components/schemas/Link'
+    Link:
+      type: object
+      properties:
+        ShortId:
+          type: string
+        OriginUrl:
+          type: string
+        Clicks:
+          type: integer
+        IsOneTime:
+          type: boolean
+
+    DeactivateLinkResponse:
+      type: object
+      properties:
+        status:
+          type: number
+        linkId:
+          type: string
+
+    DeactivateLink:
+      type: object
+      properties:
+        linkId:
+          type: string
+
+    ShortLinkResponse:
+      title: short link
+      type: object
+      properties:
+        status:
+          type: number
+        ShortId:
+          description: newly generated short link id
+          type: string
+        Clicks:
+          description: amoung of clicks for this link
+          type: number
+        OriginUrl:
+          description: original url
+          type: string
+
+    OriginLinkWithExpTime:
+      type: object
+      properties:
+        url:
+          type: string
+        expirationTime:
+          type: string
+          enum:
+            - '0d'
+            - '1d'
+            - '3d'
+            - '7d'
+
+    RefreshToken:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+
+    UserCredentials:
+      type: object
+      properties:
+        email:
+          type: string
+          uniqueItems: true
+        password:
+          type: string
+
+    TokenPairResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        tokenPair:
+          type: object
+          properties:
+            accessToken:
+              type: string
+            refreshToken:
+              type: string
+
+  securitySchemes:
+    LambdaAuth:
+      type: apiKey
+      bearerFormat: JWT
+      name: Authorization
+      in: header
+      scheme: bearer
+      x-amazon-apigateway-authtype: custom
+      x-amazon-apigateway-authorizer:
+        type: request
+        identitySource: method.request.header.Authorization
+        authorizerUri: !Sub "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:162715114071:function:verifyToken/invocations"
+
