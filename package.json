@@ -6,7 +6,9 @@
     "@types/aws-lambda": "^8.10.125",
     "@types/node": "^20.8.7",
     "esbuild": "^0.19.5",
-    "serverless-dotenv-plugin": "^6.0.0"
+    "serverless-create-global-dynamodb-table": "^3.1.1",
+    "serverless-dotenv-plugin": "^6.0.0",
+    "serverless-openapi-documentation": "^0.4.0"
   },
   "scripts": {
     "init": "node script.mjs init",
@@ -22,7 +24,6 @@
     "@aws-sdk/client-sqs": "^3.435.0",
     "@aws-sdk/lib-dynamodb": "^3.433.0",
     "bcryptjs": "^2.4.3",
-    "date-fns": "^2.30.0",
     "jsonwebtoken": "^9.0.2",
     "nanoid": "^3.3.6"
   }
