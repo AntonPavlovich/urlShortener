@@ -15,7 +15,7 @@ export const sendLinkDeactivatedEmail: Handler = async event => {
         Destination: {
           ToAddresses: [ body.UserEmail ]
         },
-        Source: 'ya.anton.pavlovich@proton.me',
+        Source: process.env.SOURCE_EMAIL,
         Message: {
           Subject: {
             Data: 'Your link have been deactivated.',
