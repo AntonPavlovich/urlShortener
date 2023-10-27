@@ -24,11 +24,15 @@ switch (action) {
       const external = Object.keys(parsed?.dependencies);
 
       await esbuild.build({
-        entryPoints: ['src/functions/**/*', './src/enums', './src/utils/*'],
+        entryPoints: ['src/functions/**/*', './src/enums', './src/utils/*', './src/docs/**'],
         bundle: true,
         platform: 'node',
         target: ['node18'],
         outdir: './dist',
+        loader: {
+          '.yaml': "copy",
+          '.json': 'copy'
+        },
         external: [...external],
       }).then(() => {
         console.log('Builded!');
