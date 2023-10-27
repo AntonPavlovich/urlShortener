@@ -31,7 +31,11 @@ npm run build
 
 ### Deploy project
 
-Run command
+Run command. (This command also build project first)
 ```bash
 npm run deploy
 ```
+
+### Documentation 
+
+Navigate to "**yourAppUrl**/stage/docs" to access it.
