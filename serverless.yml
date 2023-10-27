@@ -9,9 +9,10 @@ custom:
   globalTables:
     version: v2
     regions:
-      - eu-central-1
       - eu-west-1
-    createStack: false
+  scriptable:
+    hooks:
+      before:package:createDeploymentArtifacts: npm run build
   # configuring authorizer in provider.httpApi doesn't work and there are still open issue
   # should be added after serverless team fix this issue
   authorizer:
@@ -23,6 +24,7 @@ custom:
 plugins:
   - serverless-dotenv-plugin
   - serverless-create-global-dynamodb-table
+  - serverless-scriptable-plugin
 
 provider:
   name: aws
@@ -87,10 +89,10 @@ package:
     - '!Readme.md'
 
 functions:
-  # authorizer
+
   verifyToken:
     handler: dist/functions/auth/verify-token.verifyToken
-  # auth
+
   signUp:
     handler: dist/functions/auth/sign-up.signUp
     events:
@@ -156,6 +158,17 @@ functions:
           batchSize: 10
           maximumBatchingWindow: 60
           functionResponseType: ReportBatchItemFailures
+  getDocs:
+    handler: dist/functions/docs/get-docs.getDocs
+    events:
+      - http:
+          path: /docs
+          method: GET
+          cors: true
+      - http:
+          path: /schema.yaml
+          method: GET
+          cors: true
 
 resources:
   - ${file(./src/resources/dynamoDd.yml)}
