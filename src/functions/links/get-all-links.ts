@@ -30,10 +30,11 @@ export const getAllLinks: Handler = async event => {
     } as ResponseShape;
 
   } catch (ex) {
+    console.error(ex);
     return {
       statusCode: 500,
       body: JSON.stringify({
-        message: ex?.message ?? 'Internal Server Error'
+        message: 'Internal Server Error'
       })
     }
   }

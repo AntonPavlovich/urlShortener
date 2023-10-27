@@ -52,6 +52,7 @@ export const signUp: Handler = async (event) => {
       })
     };
   } catch (ex) {
+    console.error(ex);
     const body = {
       status: Status.ERROR,
       error: ex,
@@ -64,7 +65,7 @@ export const signUp: Handler = async (event) => {
         body: JSON.stringify(body),
       };
     } else {
-      body.error = ex?.message ?? "Error while SignUp processing.";
+      body.error = "Error while SignUp processing.";
       return {
         statusCode: 500,
         body: JSON.stringify(body),

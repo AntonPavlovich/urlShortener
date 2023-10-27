@@ -32,9 +32,10 @@ export const refresh: Handler = async (event) => {
       body: JSON.stringify(body)
     }
   } catch (ex) {
+    console.error(ex);
     const body = {
       status: Status.ERROR,
-      error: ex?.message ?? 'Bad request'
+      error: statusCode === 400 ? 'Bad request' : 'Internal server error',
     }
     statusCode = ex?.statusCode ?? 500;
     return {

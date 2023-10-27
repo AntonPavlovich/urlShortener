@@ -58,7 +58,7 @@ export const generateShortLink: Handler = async event => {
       statusCode: statusCode ?? 500,
       body: JSON.stringify({
         status: Status.ERROR,
-        error: ex?.message ?? 'Internal Server Error'
+        error: 'Internal Server Error'
       })
     }
   }

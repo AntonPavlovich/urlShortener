@@ -44,7 +44,8 @@ export const signIn: Handler = async (event) => {
     }
 
   } catch (ex) {
-    const body = { status: Status.ERROR, error: ex?.message ?? "Error while signing up." }
+    console.error(ex);
+    const body = { status: Status.ERROR, error: "Error while signing up." }
     return {
       statusCode,
       body: JSON.stringify(body)
