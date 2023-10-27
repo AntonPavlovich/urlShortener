@@ -1,4 +1,7 @@
 openapi: 3.0.0
+servers:
+  - url: /dev
+  - url: /
 info:
   version: "1.0.0"
   title: url-shortener-api
@@ -86,7 +89,7 @@ paths:
     post:
       summary: generate short link
       security:
-        - LambdaAuth: []
+        - BearerAuth: []
       tags:
         - Links
       description: generate short link for long one provided
@@ -114,7 +117,7 @@ paths:
     patch:
       summary: deactivate short link
       security:
-        - LambdaAuth: []
+        - BearerAuth: []
       tags:
         - Links
       description: mark short link as deactivated
@@ -142,7 +145,7 @@ paths:
     get:
       summary: returns all links for requested user
       security:
-        - LambdaAuth: []
+        - BearerAuth: []
       tags:
         - Links
       operationId: getAllLinks
@@ -283,15 +286,20 @@ components:
               type: string
 
   securitySchemes:
-    LambdaAuth:
-      type: apiKey
-      bearerFormat: JWT
-      name: Authorization
-      in: header
+    BearerAuth:
+      type: http
       scheme: bearer
-      x-amazon-apigateway-authtype: custom
-      x-amazon-apigateway-authorizer:
-        type: request
-        identitySource: method.request.header.Authorization
-        authorizerUri: !Sub "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:162715114071:function:verifyToken/invocations"
-
+      bearerFormat: JWT
+#  securitySchemes:
+#    LambdaAuth:
+#      type: apiKey
+#      bearerFormat: JWT
+#      name: Authorization
+#      in: header
+#      scheme: bearer
+#      x-amazon-apigateway-authtype: custom
+#      x-amazon-apigateway-authorizer:
+#        type: request
+#        identitySource: method.request.header.Authorization
+#        authorizerUri: !Sub "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:162715114071:function:verifyToken/invocations"
+#

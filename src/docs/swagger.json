@@ -1,0 +1,438 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "url-shortener-api",
+    "description": "The API for URL shortener"
+  },
+  "basePath": "/",
+  "schemes": [
+    "https"
+  ],
+  "paths": {
+    "/sign-up": {
+      "post": {
+        "summary": "method for creating user",
+        "tags": [
+          "Auth"
+        ],
+        "description": "creates and signs in a user using email and password",
+        "operationId": "signUp",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "User information",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "uniqueItems": true
+                },
+                "password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "status and two tokens (access and refresh)",
+            "schema": {
+              "$ref": "#/definitions/TokenPairResponse"
+            }
+          },
+          "400": {
+            "description": "bad request (wrong user password or email already exists)",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/sign-in": {
+      "post": {
+        "summary": "method for login user",
+        "tags": [
+          "Auth"
+        ],
+        "description": "login user in the application",
+        "operationId": "signIn",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "User credentials",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserCredentials"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "status and two tokens (access and refresh)",
+            "schema": {
+              "$ref": "#/definitions/TokenPairResponse"
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/refresh": {
+      "post": {
+        "summary": "refreshes access token using refresh token",
+        "tags": [
+          "Auth"
+        ],
+        "description": "refreshes access token",
+        "operationId": "refresh",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Refresh token",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RefreshToken"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "status and two tokens (access and refresh)",
+            "schema": {
+              "$ref": "#/definitions/TokenPairResponse"
+            }
+          }
+        }
+      }
+    },
+    "/l/generate": {
+      "post": {
+        "summary": "generate short link",
+        "tags": [
+          "Links"
+        ],
+        "description": "generate a short link for a long one provided",
+        "operationId": "generateShortLink",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "LambdaAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Origin link with expiration time",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/OriginLinkWithExpTime"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "generated short link",
+            "schema": {
+              "$ref": "#/definitions/ShortLinkResponse"
+            }
+          },
+          "400": {
+            "description": "bad request (wrong URL)",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/l/deactivate": {
+      "patch": {
+        "summary": "deactivate short link",
+        "tags": [
+          "Links"
+        ],
+        "description": "mark the short link as deactivated",
+        "operationId": "deactivateLink",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "LambdaAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Deactivate link information",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DeactivateLink"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "status and linkId",
+            "schema": {
+              "$ref": "#/definitions/DeactivateLinkResponse"
+            }
+          },
+          "403": {
+            "description": "forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/l/get-all-links": {
+      "get": {
+        "summary": "returns all links for the requested user",
+        "tags": [
+          "Links"
+        ],
+        "operationId": "getAllLinks",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "LambdaAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "array of Links",
+            "schema": {
+              "$ref": "#/definitions/Links"
+            }
+          }
+        }
+      }
+    },
+    "/l/{shortId}": {
+      "get": {
+        "summary": "redirect to the original URL",
+        "tags": [
+          "Links"
+        ],
+        "parameters": [
+          {
+            "name": "shortId",
+            "in": "path",
+            "description": "short ID for link",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "operationId": "redirect",
+        "responses": {
+          "308": {
+            "description": "permanent redirect",
+            "headers": {
+              "Location": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          },
+          "404": {
+            "description": "not found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "default": "Not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Error": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "default": "Error"
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    },
+    "Links": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Link"
+      }
+    },
+    "Link": {
+      "type": "object",
+      "properties": {
+        "ShortId": {
+          "type": "string"
+        },
+        "OriginUrl": {
+          "type": "string"
+        },
+        "Clicks": {
+          "type": "integer"
+        },
+        "IsOneTime": {
+          "type": "boolean"
+        }
+      }
+    },
+    "DeactivateLinkResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "number"
+        },
+        "linkId": {
+          "type": "string"
+        }
+      }
+    },
+    "DeactivateLink": {
+      "type": "object",
+      "properties": {
+        "linkId": {
+          "type": "string"
+        }
+      }
+    },
+    "ShortLinkResponse": {
+      "title": "short link",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "number"
+        },
+        "ShortId": {
+          "description": "newly generated short link ID",
+          "type": "string"
+        },
+        "Clicks": {
+          "description": "amount of clicks for this link",
+          "type": "number"
+        },
+        "OriginUrl": {
+          "description": "original URL",
+          "type": "string"
+        }
+      }
+    },
+    "OriginLinkWithExpTime": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "expirationTime": {
+          "type": "string",
+          "enum": [
+            "0d",
+            "1d",
+            "3d",
+            "7d"
+          ]
+        }
+      }
+    },
+    "RefreshToken": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "UserCredentials": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "uniqueItems": true
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "TokenPairResponse": {
+      "type": "object",
+      "properties": {
+        "statusCode": {
+          "type": "integer"
+        },
+        "tokenPair": {
+          "type": "object",
+          "properties": {
+            "accessToken": {
+              "type": "string"
+            },
+            "refreshToken": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "LambdaAuth": {
+      "in": "header",
+      "type": "apiKey",
+      "name": "Authorization"
+    }
+  }
+}
