@@ -15,7 +15,9 @@ SOURCE_EMAIL= #the email that will be used as a source for link deactivated emai
 
 ### Register source email address
 
-Run command
+Run command after providing SOURCE_EMAIL variable for email registration.
+This email will be used as "from" for emails notification.
+
 ```bash
 npm run init
 ```
@@ -27,7 +29,7 @@ Run command
 npm run build
 ```
 
-### Build and Deploy
+### Deploy project
 
 Run command
 ```bash
