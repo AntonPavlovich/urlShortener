@@ -48,3 +48,18 @@ npm run deploy
 ### Documentation 
 
 Navigate to "**yourAppUrl**/stage/docs" to access it.
+
+### Structure of the Project
+
+```bash
+src/
+├── docs/ # openapi documentation for API
+├── functions/ # lambdas for API
+│   ├── auth/ # auth lambdas
+│   ├── docs/ # documentation   
+│   └── links/ #links lambdas
+├── resources/ # .yaml files describing app resources
+├── types/ #types for application
+├── utils/ #utils for lambdas
+└── enum.ts # file with application's enums
+```
