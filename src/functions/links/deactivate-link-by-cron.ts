@@ -9,43 +9,32 @@ const sqs = getSqsClient();
 export const deactivateLinkByCron: Handler = async (event, context, callback) => {
   try {
     const { QueueUrl } = await sqs.send(new GetQueueUrlCommand({ QueueName: process.env.DEACTIVATED_LINKS_QUEUE_NAME }));
-    const { ShortId } = event;
-
-    const queryCommandParams: QueryCommandInput = {
-      TableName: process.env.LINKS_TABLE_NAME,
-      KeyConditionExpression: 'ShortId = :shortId',
-      FilterExpression: 'IsActive = :isActive',
-      ExpressionAttributeValues: {
-        ":shortId": ShortId,
-        ":isActive": true
-      },
-      ProjectionExpression: 'ShortId, UserEmail'
-    };
-    const { Items: [ link ] = [] } = await ddb.send(new QueryCommand(queryCommandParams));
-    if (!link) {
-      throw new Error("No such link in database!");
-    }
+    const { ShortId, UserEmail } = event;
 
     const updateCommandParams: UpdateCommandInput = {
       TableName: process.env.LINKS_TABLE_NAME,
       Key: {
-        ShortId: link.ShortId
+        ShortId
       },
+      ConditionExpression: 'UserEmail = :userEmail',
       UpdateExpression: 'Set IsActive = :isActive',
       ExpressionAttributeValues: {
-        ":isActive": false
-      }
+        ":isActive": false,
+        ":userEmail": UserEmail
+      },
+      ReturnValues: 'ALL_NEW'
     }
-    await ddb.send(new UpdateCommand(updateCommandParams));
-
-    const sendMessageCommandParams: SendMessageCommandInput = {
-      QueueUrl,
-      MessageBody: JSON.stringify({
-        ShortId: link.ShortId,
-        UserEmail: link.UserEmail,
-      })
-    };
-    await sqs.send(new SendMessageCommand(sendMessageCommandParams));
+    const { Attributes } = await ddb.send(new UpdateCommand(updateCommandParams));
+    if (Attributes) {
+      const sendMessageCommandParams: SendMessageCommandInput = {
+        QueueUrl,
+        MessageBody: JSON.stringify({
+          ShortId,
+          UserEmail
+        })
+      };
+      await sqs.send(new SendMessageCommand(sendMessageCommandParams));
+    }
 
     return 'Finished';
   } catch (ex) {

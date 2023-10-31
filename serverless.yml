@@ -6,10 +6,10 @@ custom:
   dynamoDbUsersTableName: 'Users-${self:provider.stage}'
   dynamoDbLinksTableName: 'Links-${self:provider.stage}'
   deactivatedLinksQueueName: 'Deactivated-Links-${self:provider.stage}'
-#  globalTables:
-#    version: v2
-#    regions:
-#      - eu-west-1
+  globalTables:
+    version: v2
+    regions:
+      - eu-west-1
   scriptable:
     hooks:
       before:package:createDeploymentArtifacts: npm run build

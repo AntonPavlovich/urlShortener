@@ -55,7 +55,7 @@ export const generateShortLink: Handler = async event => {
         Target: {
           Arn: `arn:aws:lambda:${process.env.REGION}:${accountId}:function:${process.env.DEACTIVATE_FUNC_NAME}`,
           RoleArn: `arn:aws:iam::${accountId}:role/${process.env.ROLE_NAME}`,
-          Input: JSON.stringify({ ShortId: putCommandParams.Item.ShortId }),
+          Input: JSON.stringify({ ShortId: putCommandParams.Item.ShortId, UserEmail: email }),
         },
         ActionAfterCompletion: 'DELETE'
       };
