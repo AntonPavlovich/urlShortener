@@ -6,10 +6,10 @@ custom:
   dynamoDbUsersTableName: 'Users-${self:provider.stage}'
   dynamoDbLinksTableName: 'Links-${self:provider.stage}'
   deactivatedLinksQueueName: 'Deactivated-Links-${self:provider.stage}'
-  globalTables:
-    version: v2
-    regions:
-      - eu-west-1
+#  globalTables:
+#    version: v2
+#    regions:
+#      - eu-west-1
   scriptable:
     hooks:
       before:package:createDeploymentArtifacts: npm run build
@@ -46,40 +46,14 @@ provider:
         - Special-Response-Header
       maxAge: 6000
   iam:
-    role:
-      name: my-app-function-role
-      statements:
-        - Effect: Allow
-          Action:
-            - dynamodb:DescribeTable
-            - dynamodb:Query
-            - dynamodb:Scan
-            - dynamodb:GetItem
-            - dynamodb:PutItem
-            - dynamodb:UpdateItem
-            - dynamodb:DeleteItem
-          Resource:
-            - { "Fn::GetAtt": [ "usersTable", "Arn" ] }
-            - { "Fn::GetAtt": [ "linksTable", "Arn" ] }
-        - Effect: Allow
-          Action:
-            - sqs:ReceiveMessage
-            - sqs:SendMessage
-            - sqs:GetQueueUrl
-            - sqs:GetQueueAttributes
-          Resource:
-            - { "Fn::GetAtt": [ "deactivatedLinks", "Arn" ] }
-        - Effect: Allow
-          Action:
-            - ses:SendEmail
-            - ses:VerifyEmailIdentity
-          Resource: "*"
-
+    role: MyCustomRole
   environment:
     REGION: ${self:provider.region}
     USER_TABLE_NAME: ${self:custom.dynamoDbUsersTableName}
     LINKS_TABLE_NAME: ${self:custom.dynamoDbLinksTableName}
     DEACTIVATED_LINKS_QUEUE_NAME: ${self:custom.deactivatedLinksQueueName}
+    DEACTIVATE_FUNC_NAME: ${self:functions.deactivateLinkByCron.name}
+    ROLE_NAME: ${file(./src/resources/iam.yml):Resources.MyCustomRole.Properties.RoleName}
 
 package:
   individually: true
@@ -89,10 +63,8 @@ package:
     - '!Readme.md'
 
 functions:
-
   verifyToken:
     handler: dist/functions/auth/verify-token.verifyToken
-
   signUp:
     handler: dist/functions/auth/sign-up.signUp
     events:
@@ -111,7 +83,9 @@ functions:
       - http:
           path: /refresh
           method: POST
-  #links management
+  deactivateLinkByCron:
+    name: deactivateLinkByCron-${self:provider.stage}
+    handler: dist/functions/links/deactivate-link-by-cron.deactivateLinkByCron
   generateShortLink:
     handler: dist/functions/links/generate-short-link.generateShortLink
     events:
@@ -136,11 +110,6 @@ functions:
           method: GET
           authorizer: ${self:custom.authorizer}
           cors: true
-  deactivateLinkByCron:
-    handler: dist/functions/links/deactivate-link-by-cron.deactivateLinkByCron
-    events:
-      - eventBridge:
-          schedule: rate(1 day)
   redirect:
     handler: dist/functions/links/redirect.redirect
     events:
@@ -173,3 +142,4 @@ functions:
 resources:
   - ${file(./src/resources/dynamoDd.yml)}
   - ${file(./src/resources/sqs.yml)}
+  - ${file(./src/resources/iam.yml)}

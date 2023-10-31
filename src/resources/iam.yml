@@ -1,0 +1,62 @@
+Resources:
+  MyCustomRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: MyCustomRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "scheduler.amazonaws.com"
+                - "lambda.amazonaws.com"
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: PolicyForMyApplication
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: permissionsForResourceAll
+                Effect: Allow
+                Action:
+                  - ses:SendEmail
+                  - ses:VerifyEmailIdentity
+                  - iam:PassRole
+                  - scheduler:CreateSchedule
+                  - lambda:InvokeFunction
+                Resource: "*"
+              - Sid: sqs
+                Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:SendMessage
+                  - sqs:GetQueueUrl
+                  - sqs:GetQueueAttributes
+                Resource:
+                  - { "Fn::GetAtt": [ "deactivatedLinks", "Arn" ] }
+              - Sid: logs
+                Effect: Allow
+                Action:
+                  - logs:GetLogEvents
+                  - logs:PutLogEvents
+                  - logs:CreateLogStream
+                  - logs:DescribeLogStreams
+                  - logs:PutRetentionPolicy
+                  - logs:CreateLogGroup
+                Resource: "*"
+              - Sid: dynamoDb
+                Effect: Allow
+                Action:
+                  - dynamodb:DescribeTable
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                Resource:
+                  - { "Fn::GetAtt": [ "usersTable", "Arn" ] }
+                  - { "Fn::GetAtt": [ "linksTable", "Arn" ] }

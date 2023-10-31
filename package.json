@@ -20,6 +20,7 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.433.0",
+    "@aws-sdk/client-scheduler": "^3.438.0",
     "@aws-sdk/client-ses": "^3.435.0",
     "@aws-sdk/client-sqs": "^3.435.0",
     "@aws-sdk/lib-dynamodb": "^3.433.0",
